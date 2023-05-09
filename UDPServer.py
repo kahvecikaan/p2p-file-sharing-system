@@ -13,8 +13,8 @@ def save_content_dict(content_dict, file_path):
         json.dump(content_dict, f)
 
 
-port = 5001
-sock = listen(port)
+PORT = 5001
+sock = listen(PORT)
 
 content_dict = {}
 # file_path = ... specify the path to store the content dictionary
