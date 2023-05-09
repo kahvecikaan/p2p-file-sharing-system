@@ -17,7 +17,7 @@ PORT = 5001
 sock = listen(PORT)
 
 content_dict = {}
-# file_path = ... specify the path to store the content dictionary
+file_path = None  # specify the path to store the content dictionary
 content_modified = False  # to change the dict only when there is a change
 
 
@@ -39,4 +39,4 @@ while True:
         # save_content_dict(content_dict, file_path)
         content_modified = False
 
-# save_content_dict(content_dict, file_path)
+    save_content_dict(content_dict, file_path)

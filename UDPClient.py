@@ -5,7 +5,7 @@ import time
 import math
 
 
-# broadcast_ip = TBA
+broadcast_ip = None  # TBD
 broadcast_port = 5001
 
 
@@ -44,10 +44,11 @@ def get_file_names(directory):
 def format_json_messages(file_names):
     return json.dumps({"chunks": file_names})
 
-# directory = ... specify the directory containing chunk files
-# file_names = get_file_names(directory)
-# json_message = format_json_messages(file_names)
+
+directory = None  # specify the directory containing chunk files
+file_names = get_file_names(directory)
+json_message = format_json_messages(file_names)
 
 # run the broadcast function:
-# send_broadcast([json_message], broadcast_ip, broadcast_port)
+send_broadcast([json_message], broadcast_ip, broadcast_port)
 
