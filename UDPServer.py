@@ -36,7 +36,7 @@ while True:
             print(f"{addr[0]} : {', '.join(content_dict[chunk])}")
 
     if content_modified:
-        # save_content_dict(content_dict, file_path)
+        save_content_dict(content_dict, file_path)
         content_modified = False
 
     save_content_dict(content_dict, file_path)
