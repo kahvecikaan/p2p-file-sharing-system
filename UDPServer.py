@@ -17,7 +17,7 @@ PORT = 5001
 sock = listen(PORT)
 
 content_dict = {}
-file_path = None  # specify the path to store the content dictionary
+file_path = "./content_dict.json"  # specify the path to store the content dictionary
 content_modified = False  # to change the dict only when there is a change
 
 
@@ -33,7 +33,7 @@ while True:
         if addr[0] not in content_dict[chunk]:
             content_dict[chunk].append(addr[0])
             content_modified = True
-            print(f"{addr[0]} : {', '.join(content_dict[chunk])}")
+            print(f"{addr[0]} : {', '.join(content_dict)}")
 
     if content_modified:
         save_content_dict(content_dict, file_path)
