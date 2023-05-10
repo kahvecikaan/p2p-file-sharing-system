@@ -48,7 +48,7 @@ def format_json_messages(file_names):
     return json.dumps({"chunks": file_names})  # passing a dictionary to json.dumps() will return a string
 
 
-directory = None  # specify the directory containing chunk files
+directory = input("Directory path containing chunk files: ")  # specify the directory containing chunk files
 file_names = get_file_names(directory)
 json_message = format_json_messages(file_names)
 
