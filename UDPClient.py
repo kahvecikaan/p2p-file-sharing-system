@@ -38,6 +38,7 @@ def send_broadcast(messages, broadcast_ip, port):
             time.sleep(60)
 
 
+
 def get_file_names(directory):
     return [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
 # note that this func returns the file names with extensions (ask Ece Hoca about this!)
@@ -49,6 +50,8 @@ def format_json_messages(file_names):
 
 
 directory = input("Directory path containing chunk files: ")  # specify the directory containing chunk files
+
+
 file_names = get_file_names(directory)
 json_message = format_json_messages(file_names)
 
