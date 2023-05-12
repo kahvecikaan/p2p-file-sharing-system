@@ -10,10 +10,9 @@ broadcast_port = 5001
 
 announce_path = "./announce/"
 
+
 def divide_file(file_path, chunk_size):
     content_name = os.path.splitext(os.path.basename(file_path))[0]
-    file_size = os.path.getsize(file_path)
-
     index = 1
     with open(file_path, "rb") as infile:
         chunk = infile.read(chunk_size)
@@ -36,18 +35,23 @@ def send_broadcast(messages, broadcast_ip, port):
     while True:
         for message in messages:
             sock.sendto(message.encode(), (broadcast_ip, port))
-            time.sleep(2)
+            time.sleep(60)
+
 
 
 def get_file_names(directory):
     return [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
+# note that this func returns the file names with extensions (ask Ece Hoca about this!)
+# without extensions: return [os.path.splitext(f)[0] for f in os.listdir(directory) if os.path.isfile(os.path.join...
 
 
 def format_json_messages(file_names):
-    return json.dumps({"chunks": file_names})
+    return json.dumps({"chunks": file_names})  # passing a dictionary to json.dumps() will return a string
 
 
-directory = input("directory path ") # specify the directory containing chunk files
+directory = input("Directory path containing chunk files: ")  # specify the directory containing chunk files
+
+
 file_names = get_file_names(directory)
 json_message = format_json_messages(file_names)
 

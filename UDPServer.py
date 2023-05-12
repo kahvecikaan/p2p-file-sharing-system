@@ -17,7 +17,8 @@ PORT = 5001
 sock = listen(PORT)
 
 content_dict = {}
-file_path = "./dict.json"  # specify the path to store the content dictionary
+file_path = "./content_dict.json"  # specify the path to store the content dictionary
+
 content_modified = False  # to change the dict only when there is a change
 
 
@@ -35,7 +36,7 @@ while True:
             print(f"{addr[0]} : {', '.join(content_dict)}")
 
     if content_modified:
-        # save_content_dict(content_dict, file_path)
+        save_content_dict(content_dict, file_path)
         content_modified = False
 
     save_content_dict(content_dict, file_path)
