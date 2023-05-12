@@ -46,5 +46,5 @@ def main():
     print(f"{content_name}.png has been successfully downloaded.")
 
 
-if __name__ == "main":
+if __name__ == "__main__":
     main()

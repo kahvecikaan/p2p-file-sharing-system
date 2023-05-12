@@ -12,6 +12,9 @@ def send_chunk(conn, addr, chunk_name):
 
 
 def main():
+    #hostname=socket.gethostname()
+    #HOST=socket.gethostbyname(hostname)
+    #print(HOST)
     HOST = "127.0.0.1"
     PORT = 5000
 
@@ -31,5 +34,5 @@ def main():
                         log_file.write(f"{datetime.datetime.now()}: {requested_chunk} sent to {addr[0]}\n")
 
 
-if __name__ == "main":
+if __name__ == "__main__":
     main()
