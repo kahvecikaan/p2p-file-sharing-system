@@ -31,5 +31,5 @@ def main():
                         log_file.write(f"{datetime.datetime.now()}: {requested_chunk} sent to {addr[0]}\n")
 
 
-if __name__ == "main":
+if __name__ == "__main__":
     main()
