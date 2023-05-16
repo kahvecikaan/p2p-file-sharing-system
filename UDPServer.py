@@ -18,13 +18,13 @@ sock = listen(PORT)
 
 content_dict = {}
 file_path = "./content_dict.json"  # specify the path to store the content dictionary
+
 content_modified = False  # to change the dict only when there is a change
 
 
 while True:
     data, addr = sock.recvfrom(1024)
     content = json.loads(data.decode())
-
     for chunk in content["chunks"]:
         if chunk not in content_dict:
             content_dict[chunk] = []

@@ -14,6 +14,7 @@ if not os.path.exists(announce_path):
     os.makedirs(announce_path)
 
 
+
 def divide_file(file_path, chunk_size):
     content_name = os.path.splitext(os.path.basename(file_path))[0]
     index = 1
@@ -37,6 +38,7 @@ def send_broadcast(messages, broadcast_ip, port):
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)  # allows socket to send broadcast messages
     while True:
         for message in messages:
+            print(message)
             sock.sendto(message.encode(), (broadcast_ip, port))
             time.sleep(2)
 
@@ -51,7 +53,6 @@ def format_json_messages(file_names):
     return json.dumps({"chunks": file_names})  # passing a dictionary to json.dumps() will return a string
 
 
-# announce_path = input("Directory path containing chunk files: ")  # specify the directory containing chunk files
 file_names = get_file_names(announce_path)
 json_message = format_json_messages(file_names)
 
