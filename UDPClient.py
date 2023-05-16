@@ -10,9 +10,10 @@ broadcast_port = 5001
 
 announce_path = "./announce/"
 
-#directory = input("Directory path containing chunk files: ")  # specify the directory containing chunk files
 if not os.path.exists(announce_path):
     os.makedirs(announce_path)
+
+
 
 def divide_file(file_path, chunk_size):
     content_name = os.path.splitext(os.path.basename(file_path))[0]
@@ -42,7 +43,6 @@ def send_broadcast(messages, broadcast_ip, port):
             time.sleep(2)
 
 
-
 def get_file_names(directory):
     return [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
 # note that this func returns the file names with extensions (ask Ece Hoca about this!)
@@ -51,6 +51,7 @@ def get_file_names(directory):
 
 def format_json_messages(file_names):
     return json.dumps({"chunks": file_names})  # passing a dictionary to json.dumps() will return a string
+
 
 file_names = get_file_names(announce_path)
 json_message = format_json_messages(file_names)

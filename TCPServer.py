@@ -4,7 +4,7 @@ import datetime
 
 
 def send_chunk(conn, addr, chunk_name):
-    with open(chunk_name, "rb") as f:
+    with open("./announce/" + chunk_name, "rb") as f:
         data = f.read(1024)
         while data:  # keep sending until the entire file is sent
             conn.send(data)
@@ -12,10 +12,8 @@ def send_chunk(conn, addr, chunk_name):
 
 
 def main():
-    #hostname=socket.gethostname()
-    #HOST=socket.gethostbyname(hostname)
-    #print(HOST)
-    HOST = "127.0.0.1"
+
+    HOST = "192.168.1.24"
     PORT = 5000
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
