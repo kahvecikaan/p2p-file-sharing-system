@@ -5,10 +5,13 @@ import time
 import math
 
 
-broadcast_ip = "192.168.154.255"  # TBD
+broadcast_ip = "255.255.255.255"  # TBD
 broadcast_port = 5001
 
 announce_path = "./announce/"
+
+if not os.path.exists(announce_path):
+    os.makedirs(announce_path)
 
 
 def divide_file(file_path, chunk_size):
@@ -35,7 +38,7 @@ def send_broadcast(messages, broadcast_ip, port):
     while True:
         for message in messages:
             sock.sendto(message.encode(), (broadcast_ip, port))
-            time.sleep(60)
+            time.sleep(2)
 
 
 def get_file_names(directory):
@@ -48,8 +51,8 @@ def format_json_messages(file_names):
     return json.dumps({"chunks": file_names})  # passing a dictionary to json.dumps() will return a string
 
 
-directory = input("Directory path containing chunk files: ")  # specify the directory containing chunk files
-file_names = get_file_names(directory)
+# announce_path = input("Directory path containing chunk files: ")  # specify the directory containing chunk files
+file_names = get_file_names(announce_path)
 json_message = format_json_messages(file_names)
 
 # run the broadcast function:
