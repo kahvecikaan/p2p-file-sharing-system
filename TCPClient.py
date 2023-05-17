@@ -3,9 +3,9 @@ import json
 import datetime
 
 
-def stitch_chunks(content_name):
+def stitch_chunks(content_name, extension):
     chunk_names = [content_name + "_" + str(i + 1) for i in range(5)]
-    with open(content_name + ".png", "wb") as outfile:
+    with open(content_name + extension, "wb") as outfile:
         for chunk in chunk_names:
             with open(chunk, "rb") as infile:
                 outfile.write(infile.read())
@@ -32,6 +32,8 @@ def download_chunk(content_dict, content_name, chunk_index):
 
 def main():
     content_name = input("Enter the content name that you want to download: ")
+    extension = content_name[-4:]  # extension of the file
+    content_name = content_name[0: -4]  # content_name without the extension
     with open("content_dict.json") as f:
         content_dict = json.load(f)
     for i in range(1, 6):
@@ -42,8 +44,8 @@ def main():
         else:
             print(f"WARNING: CHUNK {content_name}_{i} CANNOT BE DOWNLOADED FROM ONLINE PEERS.")
 
-    stitch_chunks(content_name)
-    print(f"{content_name}.png has been successfully downloaded.")
+    stitch_chunks(content_name, extension)
+    print(f"{content_name}" + extension + " has been successfully downloaded.")
 
 
 if __name__ == "__main__":
