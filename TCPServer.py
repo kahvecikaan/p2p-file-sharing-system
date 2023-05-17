@@ -12,11 +12,11 @@ def send_chunk(conn, addr, chunk_name):
 
 
 def main():
-    HOST = "192.168.1.24"
-    PORT = 5000
+    host = "192.168.154.204"
+    port = 5000
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind((HOST, PORT))
+        s.bind((host, port))
         while True:
             s.listen()
             conn, addr = s.accept()  # conn: new socket for communicating with the client
