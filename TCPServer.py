@@ -3,6 +3,19 @@ import json
 import datetime
 
 
+def get_local_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(('10.255.255.255', 1))  # connecting to a random IP address
+        ip = s.getsockname()[0]
+    except Exception as e:
+        print(e)
+        ip = '127.0.0.1'
+    finally:
+        s.close()
+        return ip
+
+
 def send_chunk(conn, addr, chunk_name):
     with open("./announce/" + chunk_name, "rb") as f:
         data = f.read(1024)
@@ -12,7 +25,8 @@ def send_chunk(conn, addr, chunk_name):
 
 
 def main():
-    host = "192.168.154.204"
+    # host = "192.168.154.204"
+    host = get_local_ip()
     port = 5000
 
 
