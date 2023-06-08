@@ -1,7 +1,7 @@
 import socket
 import json
 import datetime
-
+import os
 
 def stitch_chunks(content_name, extension):
     chunk_names = [content_name + "_" + str(i + 1) for i in range(5)]
