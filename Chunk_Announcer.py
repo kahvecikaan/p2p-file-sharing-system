@@ -40,7 +40,7 @@ def send_broadcast(messages, broadcast_ip, port):
         for message in messages:
             print(message)
             sock.sendto(message.encode(), (broadcast_ip, port))
-            time.sleep(2)
+            time.sleep(60)
 
 
 def get_file_names(directory):
