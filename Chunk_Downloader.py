@@ -32,8 +32,8 @@ def download_chunk(content_dict, content_name, chunk_index):
 
 def main():
     content_name = input("Enter the content name that you want to download: ")
-    extension = content_name[-4:]  # extension of the file
-    content_name = content_name[0: -4]  # content_name without the extension
+    extension = os.path.splitext(content_name)[1]  # extension of the file
+    content_name = os.path.splitext(content_name)[0]   # content_name without the extension
     with open("content_dict.json") as f:
         content_dict = json.load(f)
     for i in range(1, 6):
