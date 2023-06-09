@@ -6,7 +6,7 @@ Implementation of the project of the course CMP2204.
 
 ### Chunk_Announcer.py
 
-1) Divides given file into 5 chunks and writes them to `announce_path` with `divide_file()`
+1) Divides given file into 5 chunks and writes them to `announce_path` with `divide_file()`, `announce_path` is `./announce` by default
 2) Gets names of chunks that is new or already existing in `announce_path`
 3) Formats them into appropiate JSON format as per Functional Specification with `format_json_messages()`
 4) Broadcasts formatted JSON messages into the network with `send_broadcast()`
@@ -36,12 +36,12 @@ Implementation of the project of the course CMP2204.
 
 Assume the device that will receive the file is `downloader_device`, and the device that will send the file is `uploader_device`.
 
-1) Change current directory to the directory that contains python files.
+1) Change current directory to the directory that contains python files
 2) Run `Content_Discovery.py` on the `downloader_device`
 ```
 python3 Content_Discovery.py
 ```
-2) Run `Chunk_Announcer.py` on the `uploader_device`
+3) Run `Chunk_Announcer.py` on the `uploader_device`
 ```
 python3 Chunk_Announcer.py
 ```
@@ -51,11 +51,13 @@ Enter file name that is to be hosted.
 ```
 python3 Chunk_Uploader.py
 ```
-4) Run `Chunk_Downloader.py` on the `downloader_device`
+5) Run `Chunk_Downloader.py` on the `downloader_device`
 ```
 python3 Chunk_Downloder.py
 ```
 Enter file name that is to be downloaded.
 If successful, the file should appear in the current directory of `downloader_device`
 
-Note: File running order is not important as long as `Chunk_Uploader.py` was started before `Chunk_Downloader.py`. Also running `Content_Discovery.py` before `Chunk_Announcer.py` is recommended for saving time as announcements are made once a minute as per the specification.
+
+### Note
+File running order is not important as long as `Chunk_Uploader.py` was started before `Chunk_Downloader.py`. Also running `Content_Discovery.py` before `Chunk_Announcer.py` is recommended for saving time as announcements are made once a minute as per the specification.
