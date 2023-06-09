@@ -1,6 +1,6 @@
 # cmp2204project
 
-Implementation of the project of the course CMP2204.
+Implementation of the project of the course CMP2204 - Computer Networks.
 
 ## Explanation
 
