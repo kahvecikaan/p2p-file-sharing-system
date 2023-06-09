@@ -31,3 +31,31 @@ Implementation of the project of the course CMP2204.
 2) Calls `download_chunk()` with `content_dict`, which then tries downloading chunk `i` from available pairs in `content_dict`
 3) If successful, chunk `i` is written, and download job is logged into `download_log.txt`, otherwise a warning is printed to `stdout`
 4) Merges downloaded chunks into one file with `stitch_chunks()`
+
+## Usage
+
+Assume the device that will receive the file is `downloader_device`, and the device that will send the file is `uploader_device`.
+
+1) Change current directory to the directory that contains python files.
+2) Run `Content_Discovery.py` on the `downloader_device`
+```
+python3 Content_Discovery.py
+```
+2) Run `Chunk_Announcer.py` on the `uploader_device`
+```
+python3 Chunk_Announcer.py
+```
+Enter file name that is to be hosted.
+
+4) Run `Chunk_Uploader.py` on the `uploader_device`
+```
+python3 Chunk_Uploader.py
+```
+4) Run `Chunk_Downloader.py` on the `downloader_device`
+```
+python3 Chunk_Downloder.py
+```
+Enter file name that is to be downloaded.
+If successful, the file should appear in the current directory of `downloader_device`
+
+Note: File running order is not important as long as `Chunk_Uploader.py` was started before `Chunk_Downloader.py`. Also running `Content_Discovery.py` before `Chunk_Announcer.py` is recommended for saving time as announcements are made once a minute as per the specification.
