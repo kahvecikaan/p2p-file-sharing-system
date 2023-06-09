@@ -55,7 +55,7 @@ python3 Chunk_Uploader.py
 ```
 python3 Chunk_Downloder.py
 ```
-Enter file name that is to be downloaded.
+Enter the absolute file path that is to be downloaded.
 If successful, the file should appear in the current directory of `downloader_device`
 
 
