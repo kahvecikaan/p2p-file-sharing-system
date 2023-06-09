@@ -24,3 +24,10 @@ Implementation of the project of the course CMP2204.
 2) If a download request is recieved from a pair, write that request to `data` and decode it into `request`
 3) Send requested chunk to the pair with `send_chunk()`
 4) Write completed upload job log to `upload_log.txt`
+
+### Chunk_Downloader.py
+
+1) Loads available pair IPs for requested file into `content_dict` from `content_dict.json`
+2) Calls `download_chunk()` with `content_dict`, which then tries downloading chunk `i` from available pairs in `content_dict`
+3) If successful, chunk `i` is written, and download job is logged into `download_log.txt`, otherwise a warning is printed to `stdout`
+4) Merges downloaded chunks into one file with `stitch_chunks()`
