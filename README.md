@@ -1,63 +1,142 @@
 # cmp2204project
 
-Implementation of the project of the course CMP2204 - Computer Networks.
+A distributed Peer-to-Peer (P2P) file sharing system for the CMP2204 – Computer Networks course, implemented in Python. This system features dynamic peer discovery, persistent TCP connections with a connection pool, and concurrent, multithreaded file chunk transfer and reconstruction.
 
-## Explanation
+## Overview
 
-### Chunk_Announcer.py
+The project has been refactored to use a modular design with the following main components:
 
-1) Divides given file into 5 chunks and writes them to `announce_path` with `divide_file()`, `announce_path` is `./announce` by default
-2) Gets names of chunks that is new or already existing in `announce_path`
-3) Formats them into appropiate JSON format as per Functional Specification with `format_json_messages()`
-4) Broadcasts formatted JSON messages into the network with `send_broadcast()`
+- **Announcer:** Scans the local chunk directory, computes checksums, and broadcasts JSON-formatted announcements over UDP.
+- **Listener & Peer Manager:** Listens for UDP announcements from other peers and maintains a content dictionary mapping available file chunks to peer IPs.
+- **Peer Server:** Serves file chunk requests over persistent TCP connections, allowing multiple requests per connection.
+- **Download Manager:** Downloads file chunks concurrently from available peers using a persistent connection pool, verifies them, and stitches the chunks together into the final file.
+- **File Splitter:** Splits large files into smaller chunks to be shared across the network.
+- **Supporting Modules:**  
+  - **config.py:** Centralizes configuration settings (e.g., ports, directories, chunk size) and ensures required directories exist.  
+  - **connection_pool.py:** Manages a thread-safe pool of persistent TCP connections to peers, reducing overhead and providing background cleanup.  
+  - **peer_manager.py:** Updates and maintains a global content dictionary based on received announcements.
 
-### Content_Discovery.py
+In addition, the project includes test directories (`test1/` and `test2/`) containing separate copies for experimental and integration testing purposes.
 
-1) Binds socket `sock` to the appropiate port `5001` with `listen()`
-2) If recieved data from `sock`, decode that data to `content`
-3) If recieved broadcast from IP `addr[0]` for the chunk `chunk` does not exist in our content dictionary `content_dict[chunk][]`, add `addr[0]` to `content_dict[chunk][]`
-4) Write modifications to content dictionary file `content_dict.json`
+## Modules
 
-### Chunk_Uploader.py
+### config.py
+- **Purpose:** Provides centralized configuration for all modules.
+- **Features:**  
+  - Default values for chunk size, broadcast/peer ports, and maximum connections.  
+  - Creation of necessary directories (e.g., `./chunks/`, `./logs/`, `./downloads/`).
 
-1) Binds socket `s` to own IP, using `get_local_ip()`, and port `5000`
-2) If a download request is recieved from a pair, write that request to `data` and decode it into `request`
-3) Send requested chunk to the pair with `send_chunk()`
-4) Write completed upload job log to `upload_log.txt`
+### announcer.py
+- **Purpose:** Broadcasts information about locally available file chunks.
+- **Key Steps:**
+  1. Scans the chunk directory and computes SHA-256 checksums.
+  2. Formats chunk metadata into JSON messages.
+  3. Broadcasts these messages over UDP so that other peers know which chunks are available.
 
-### Chunk_Downloader.py
+### listener.py & peer_manager.py
+- **Purpose:**  
+  - `listener.py` listens on a UDP port for broadcast announcements from other peers.
+  - `peer_manager.py` maintains a content dictionary that maps chunk names to peer IP addresses.
+- **Key Steps:**
+  1. Listen for UDP messages.
+  2. Parse JSON data and update the content dictionary.
+  3. Periodically remove stale peer entries.
 
-1) Loads available pair IPs for requested file into `content_dict` from `content_dict.json`
-2) Calls `download_chunk()` with `content_dict`, which then tries downloading chunk `i` from available pairs in `content_dict`
-3) If successful, chunk `i` is written, and download job is logged into `download_log.txt`, otherwise a warning is printed to `stdout`
-4) Merges downloaded chunks into one file with `stitch_chunks()`
+### peer_server.py
+- **Purpose:** Handles incoming TCP connections from peers requesting file chunks.
+- **Key Steps:**
+  1. Listens on a designated TCP port.
+  2. For each client connection, spawns a new thread.
+  3. Processes JSON requests for chunks and sends the requested file chunk (preceded by its file size) over the same connection.
+
+### connection_pool.py
+- **Purpose:** Provides a pool of persistent TCP connections for efficient, reusable communication.
+- **Key Features:**  
+  - Thread-safe checkout and return of connections.
+  - A background cleanup thread that removes stale connections.
+
+### download_manager.py
+- **Purpose:** Coordinates the download of a file from multiple peers.
+- **Key Steps:**
+  1. Loads the content dictionary to identify which peers have the required chunks.
+  2. Spawns multiple worker threads that use the connection pool to download chunks concurrently.
+  3. Verifies each chunk using its SHA-256 checksum.
+  4. Stitches the chunks together into the final file (saved in `./downloads/`).
+
+### splitter.py
+- **Purpose:** Splits a large file into smaller chunks.
+- **Key Steps:**
+  1. Reads the source file.
+  2. Divides it into chunks of a specified size.
+  3. Writes each chunk to the designated `./chunks/` directory.
 
 ## Usage
 
-Assume the device that will receive the file is `downloader_device`, and the device that will send the file is `uploader_device`.
+Assume:
+- **Uploader Device:** Hosts the file (runs `announcer.py` and `peer_server.py`).
+- **Downloader Device:** Downloads the file (runs `listener.py` and `download_manager.py`).
 
-1) Change current directory to the directory that contains python files
-2) Run `Content_Discovery.py` on the `downloader_device`
-```
-python3 Content_Discovery.py
-```
-3) Run `Chunk_Announcer.py` on the `uploader_device`
-```
-python3 Chunk_Announcer.py
-```
-Enter file name that is to be hosted.
+### To Share a File
 
-4) Run `Chunk_Uploader.py` on the `uploader_device`
-```
-python3 Chunk_Uploader.py
-```
-5) Run `Chunk_Downloader.py` on the `downloader_device`
-```
-python3 Chunk_Downloder.py
-```
-Enter the absolute file path that is to be downloaded.
-If successful, the file should appear in the current directory of `downloader_device`
+1. **Prepare the File:**
+   - Run the splitter to divide the file into chunks:
+     ```bash
+     python3 splitter.py
+     ```
+   - Chunks are saved in `./chunks/`.
 
+2. **Announce Available Chunks:**
+   - On the uploader device, run:
+     ```bash
+     python3 announcer.py
+     ```
+   - This broadcasts the available chunks to the network.
 
-### Note
-File running order is not important as long as `Chunk_Uploader.py` was started before `Chunk_Downloader.py`. Also running `Content_Discovery.py` before `Chunk_Announcer.py` is recommended for saving time as announcements are made once a minute as per the specification.
+3. **Start the Peer Server:**
+   - On the uploader device, run:
+     ```bash
+     python3 peer_server.py
+     ```
+   - This starts a TCP server to serve chunk requests.
+
+4. **Discover Content:**
+   - On the downloader device, run:
+     ```bash
+     python3 listener.py
+     ```
+   - This listens for announcements and builds a content dictionary.
+
+5. **Download and Reconstruct:**
+   - On the downloader device, run:
+     ```bash
+     python3 download_manager.py
+     ```
+   - Follow prompts to specify the file (base name) to download.
+   - The download manager concurrently downloads all chunks and reconstructs the file into `./downloads/`.
+
+### Test Directories
+
+The repository also includes `test1/` and `test2/` directories for local testing and integration experiments. These directories mirror the project structure and can be used to test changes in an isolated environment.
+
+## System Architecture
+
+- **Multi-Threaded Components:**
+  - **Peer Server:** Spawns a new thread for each incoming TCP connection, supporting multiple clients concurrently.
+  - **Download Manager:** Uses multiple worker threads to download file chunks concurrently.
+  - **Connection Pool:** Manages persistent connections with thread-safe access and background cleanup.
+
+- **Persistent Connections:**
+  - A connection pool (in `connection_pool.py`) reduces connection overhead by reusing TCP connections across multiple chunk transfers.
+
+- **Dynamic Peer Discovery:**
+  - The combination of UDP-based announcements (via `announcer.py`) and the content dictionary maintained by `listener.py` and `peer_manager.py` allows the system to dynamically discover available peers and file chunks.
+
+## Note
+
+- **Order of Execution:**  
+  The order in which modules are started is flexible. For optimal performance, start the uploader modules (`announcer.py` and `peer_server.py`) before initiating the download process. It is recommended that the downloader first runs `listener.py` to ensure its content dictionary is populated before starting `download_manager.py`.
+
+- **Logging:**  
+  All modules log operations (file transfers, errors, and network events) to assist in debugging and monitoring the system.
+
+---
