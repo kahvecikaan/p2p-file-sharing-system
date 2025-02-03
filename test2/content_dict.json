@@ -1,0 +1,44 @@
+{
+    "bayes_nets_6.png": {
+        "checksum": "ad1f5e87a6bbee7e38257b3f61aa625743c0c6d6532dbd46d494234bb464f3ab",
+        "peers": [
+            "192.168.1.206"
+        ]
+    },
+    "bayes_nets_7.png": {
+        "checksum": "c0d3315f0c99daa9ee54f185dd0e8b8c7bec6360f3f3f9183f7ec10bb5ec9997",
+        "peers": [
+            "192.168.1.206"
+        ]
+    },
+    "bayes_nets_5.png": {
+        "checksum": "9556c2be25786c1e6f0b2f22e0d1c796f8c83d5f3b2a05eb3400d2e402d80bca",
+        "peers": [
+            "192.168.1.206"
+        ]
+    },
+    "bayes_nets_4.png": {
+        "checksum": "63970eaeda07b917ed1384c253bcc2caf786e800b712f473600d9c2931134d0e",
+        "peers": [
+            "192.168.1.206"
+        ]
+    },
+    "bayes_nets_1.png": {
+        "checksum": "6215a7f15b0fba567efd635d85c8f59b42e13290cddf05b625e3e1826e6cb845",
+        "peers": [
+            "192.168.1.206"
+        ]
+    },
+    "bayes_nets_3.png": {
+        "checksum": "1c110a1349c5d2e15fedd49c127fcbb29b548b0103262b152318097feef38f4e",
+        "peers": [
+            "192.168.1.206"
+        ]
+    },
+    "bayes_nets_2.png": {
+        "checksum": "f4ee255a0e3b21315561a4c44c4416bc786da5af28e43a9afbbf39726b6cdd2c",
+        "peers": [
+            "192.168.1.206"
+        ]
+    }
+}
