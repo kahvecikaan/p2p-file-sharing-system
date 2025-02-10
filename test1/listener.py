@@ -63,12 +63,9 @@ class P2PListener:
             return False
 
     def start(self):
-        """Start listening for peer announcements."""
-        try:
-            # Create and configure socket
-            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        """Start listening for peer announcements"""
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
             sock.bind(("0.0.0.0", self.config.BROADCAST_PORT))
-
             self.logger.info(f"Listener started on port {self.config.BROADCAST_PORT}")
 
             while True:
@@ -91,18 +88,10 @@ class P2PListener:
                     content_dict = self.peer_manager.get_content_dict()
                     if self.save_content_dict(content_dict):
                         self.logger.debug("Content dictionary updated successfully")
-
                 except json.JSONDecodeError as e:
                     self.logger.error(f"Error decoding message: {e}")
                 except Exception as e:
                     self.logger.error(f"Error processing message: {e}")
-
-        except Exception as e:
-            self.logger.error(f"Fatal error in listener: {e}")
-        finally:
-            if 'sock' in locals():
-                sock.close()
-
 
 def main():
     """Start the P2P listener service."""
