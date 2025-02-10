@@ -47,7 +47,8 @@ class ChunkAnnouncer:
         self.logger.addHandler(file_handler)
         self.logger.addHandler(console_handler)
 
-    def _create_socket(self):
+    @staticmethod
+    def _create_socket():
         """Create and configure UDP socket for broadcasting."""
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
