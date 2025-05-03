@@ -1,3 +1,4 @@
+import datetime
 import hashlib
 import json
 import os
@@ -66,8 +67,8 @@ class ChunkAnnouncer:
                     data = f.read(65536)  # Read in 64KB chunks
                     if not data:
                         break
-                    sha.update(data)
-            return sha.hexdigest()
+                    sha.update(data) # Update hash with each chunk
+            return sha.hexdigest() # Returns the final hash in hexadecimal format
         except Exception as e:
             self.logger.error(f"Error calculating checksum for {file_path}: {e}")
             return None
@@ -83,7 +84,7 @@ class ChunkAnnouncer:
                     chunks[filename] = {
                         "size": os.path.getsize(file_path),
                         "checksum": checksum,
-                        "timestamp": time.time()
+                        "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     }
             return chunks
         except Exception as e:
@@ -114,7 +115,7 @@ class ChunkAnnouncer:
                 message = {
                     "peer_ip": self.get_local_ip(),
                     "chunks": chunks,
-                    "timestamp": time.time()
+                    "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 }
                 data = json.dumps(message).encode()
 
