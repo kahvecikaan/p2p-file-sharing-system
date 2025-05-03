@@ -15,6 +15,7 @@ class ChunkAnnouncer:
 
     def __init__(self, peer_id=None):
         # Initialize configuration
+        self.logger = None
         self.config = P2PConfig(peer_id)
         self.setup_logging()
 
@@ -24,7 +25,8 @@ class ChunkAnnouncer:
         # Get target ports from configuration or use defaults
         self.target_ports = self.config.config.get('TARGET_PORTS', [5001, 5002])
 
-        self.logger.info(f"ChunkAnnouncer initialized with target ports: {self.target_ports}")
+        if self.logger is not None:
+            self.logger.info(f"ChunkAnnouncer initialized with target ports: {self.target_ports}")
 
     def setup_logging(self):
         """Configure logging for the announcer component."""
@@ -47,7 +49,8 @@ class ChunkAnnouncer:
         self.logger.addHandler(file_handler)
         self.logger.addHandler(console_handler)
 
-    def _create_socket(self):
+    @staticmethod
+    def _create_socket():
         """Create and configure UDP socket for broadcasting."""
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -88,7 +91,7 @@ class ChunkAnnouncer:
             return {}
 
     def get_local_ip(self):
-        """Get local IP address by connecting to DNS server."""
+        """Get a local IP address by connecting to DNS server."""
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.connect(('8.8.8.8', 80))
@@ -107,7 +110,7 @@ class ChunkAnnouncer:
                 # Get available chunks
                 chunks = self.get_available_chunks()
 
-                # Prepare announcement message
+                # Prepare an announcement message
                 message = {
                     "peer_ip": self.get_local_ip(),
                     "chunks": chunks,
@@ -115,11 +118,11 @@ class ChunkAnnouncer:
                 }
                 data = json.dumps(message).encode()
 
-                # Send to all target ports
+                # Send it to all target ports
                 local_ip = self.get_local_ip()
                 for port in self.target_ports:
                     try:
-                        # Send to both localhost and network interface
+                        # Send it to both localhost and network interface
                         self.sock.sendto(data, ('127.0.0.1', port))
                         if local_ip != '127.0.0.1':
                             self.sock.sendto(data, (local_ip, port))
@@ -133,7 +136,7 @@ class ChunkAnnouncer:
             except Exception as e:
                 self.logger.error(f"Error in announcement cycle: {e}")
 
-            # Wait before next announcement
+            # Wait before the next announcement
             time.sleep(self.config.config.get('ANNOUNCE_INTERVAL', 10))
 
 
