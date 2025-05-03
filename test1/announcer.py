@@ -55,7 +55,8 @@ class ChunkAnnouncer:
         """Create and configure UDP socket for broadcasting."""
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind(('0.0.0.0', 0))  # Bind to any available port
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)  # Enable broadcasting
+
         return sock
 
     def get_file_checksum(self, file_path):
@@ -120,16 +121,12 @@ class ChunkAnnouncer:
                 data = json.dumps(message).encode()
 
                 # Send it to all target ports
-                local_ip = self.get_local_ip()
                 for port in self.target_ports:
                     try:
-                        # Send it to both localhost and network interface
-                        self.sock.sendto(data, ('127.0.0.1', port))
-                        if local_ip != '127.0.0.1':
-                            self.sock.sendto(data, (local_ip, port))
-                        self.logger.debug(f"Sent announcement to port {port}")
+                        # Use actual broadcast address
+                        self.sock.sendto(data, ('255.255.255.255', port))
                     except Exception as e:
-                        self.logger.error(f"Failed to send to port {port}: {e}")
+                        self.logger.error(f"Failed to broadcast to port {port}: {e}")
 
                 if chunks:
                     self.logger.info(f"Announced {len(chunks)} chunks")
@@ -140,6 +137,15 @@ class ChunkAnnouncer:
             # Wait before the next announcement
             time.sleep(self.config.config.get('ANNOUNCE_INTERVAL', 10))
 
+    def get_broadcast_address(self):
+        """Calculate the broadcast address for the current subnet"""
+        local_ip = self.get_local_ip()
+        if local_ip == '127.0.0.1':
+            return '255.255.255.255'  # Fallback for localhost
+
+        # For a typical /24 network (like 192.168.1.x)
+        ip_parts = local_ip.split('.')
+        return f"{ip_parts[0]}.{ip_parts[1]}.{ip_parts[2]}.255"
 
 def main():
     announcer = ChunkAnnouncer()
