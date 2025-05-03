@@ -10,6 +10,7 @@ class FileSplitter:
     """
 
     def __init__(self, peer_id=None):
+        self.logger = None
         self.config = P2PConfig(peer_id)
         self.setup_logging()
 
@@ -58,6 +59,7 @@ class FileSplitter:
                     if not chunk:
                         break
 
+                    # Naming convention: {original_name}_{index}{extension}
                     chunk_name = f"{content_name}_{index}{extension}"
                     chunk_path = os.path.join(self.config.CHUNK_DIR, chunk_name)
 
