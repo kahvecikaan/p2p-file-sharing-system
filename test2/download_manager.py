@@ -17,6 +17,7 @@ class DownloadManager:
 
     def __init__(self, content_name, peer_id=None):
         # Initialize configuration and logging
+        self.logger = None
         self.config = P2PConfig(peer_id)
         self.setup_logging()
 
@@ -37,15 +38,16 @@ class DownloadManager:
         # Load and process content dictionary
         self._initialize_chunks()
 
-        self.logger.info(
-            f"DownloadManager initialized for {content_name} "
-            f"with {len(self.chunks)} chunks"
+        if self.logger is not None:
+            self.logger.info(
+                f"DownloadManager initialized for {content_name} "
+                f"with {len(self.chunks)} chunks"
         )
 
     def setup_logging(self):
         """Configure logging for the download manager."""
         self.logger = logging.getLogger('DownloadManager')
-        self.logger.setLevel(logging.INFO)
+        self.logger.setLevel(logging.DEBUG)
 
         # Create handlers
         file_handler = logging.FileHandler(
@@ -230,7 +232,7 @@ class DownloadManager:
                 t.start()
 
             # Wait for downloads to complete with timeout
-            if self.download_complete.wait(timeout=300):  # 5 minutes timeout
+            if self.download_complete.wait(timeout=300):  # 5-minute timeout
                 self.logger.info("All chunks downloaded successfully")
                 self.stitch_file()
                 return True

@@ -15,6 +15,7 @@ class P2PListener:
 
     def __init__(self, peer_id=None):
         # Initialize configuration and logging
+        self.logger = None
         self.config = P2PConfig(peer_id)
         self.setup_logging()
 
@@ -27,12 +28,13 @@ class P2PListener:
             daemon=True
         ).start()
 
-        self.logger.info("P2PListener initialized")
+        if self.logger is not None:
+            self.logger.info("P2PListener initialized")
 
     def setup_logging(self):
         """Configure logging for the listener component."""
         self.logger = logging.getLogger('P2PListener')
-        self.logger.setLevel(logging.INFO)
+        self.logger.setLevel(logging.DEBUG)
 
         # Create handlers
         file_handler = logging.FileHandler(
@@ -62,6 +64,35 @@ class P2PListener:
             self.logger.error(f"Error saving content dictionary: {e}")
             return False
 
+    def _process_announcement(self, message, addr):
+        """Process a chunk announcement message, handling batched announcements."""
+        try:
+            peer_ip = message["peer_ip"]
+            chunks = message["chunks"]
+
+            if not chunks:
+                self.logger.debug("Received empty chunks announcement, skipping")
+                return
+
+            # Log batch information if present
+            if "batch_info" in message:
+                batch_info = message["batch_info"]
+                self.logger.info(f"Processing batch {batch_info['current']}/{batch_info['total']} from {peer_ip}")
+
+            # Update peer information
+            self.peer_manager.update_peer(peer_ip, chunks)
+            self.logger.debug(f"Updated peer {peer_ip} with {len(chunks)} chunks")
+
+            # Save updated content dictionary
+            content_dict = self.peer_manager.get_content_dict()
+            if self.save_content_dict(content_dict):
+                self.logger.debug("Content dictionary updated successfully")
+
+        except KeyError as e:
+            self.logger.error(f"Missing required field in announcement: {e}")
+        except Exception as e:
+            self.logger.error(f"Error processing announcement: {e}")
+
     def start(self):
         """Start listening for peer announcements"""
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
@@ -74,24 +105,15 @@ class P2PListener:
                     data, addr = sock.recvfrom(65535)
                     self.logger.debug(f"Received data from {addr}")
 
-                    message = json.loads(data.decode())
-                    self.logger.debug(f"Message content: {message}")
+                    try:
+                        message = json.loads(data.decode())
+                        self._process_announcement(message, addr)
+                    except json.JSONDecodeError as e:
+                        self.logger.error(f"Error decoding message: {e}")
 
-                    if not message.get("chunks"):
-                        self.logger.debug("Received empty chunks announcement, skipping")
-                        continue
-
-                    # Update peer information
-                    self.peer_manager.update_peer(message["peer_ip"], message["chunks"])
-
-                    # Save updated content dictionary
-                    content_dict = self.peer_manager.get_content_dict()
-                    if self.save_content_dict(content_dict):
-                        self.logger.debug("Content dictionary updated successfully")
-                except json.JSONDecodeError as e:
-                    self.logger.error(f"Error decoding message: {e}")
                 except Exception as e:
-                    self.logger.error(f"Error processing message: {e}")
+                    self.logger.error(f"Error receiving message: {e}")
+
 
 def main():
     """Start the P2P listener service."""

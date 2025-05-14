@@ -1,5 +1,3 @@
-# TEST1/
-
 import socket
 import threading
 import os
@@ -13,6 +11,7 @@ class ChunkServer:
     """
 
     def __init__(self, peer_id=None):
+        self.logger = None
         self.config = P2PConfig(peer_id)
         self.setup_logging()
 
@@ -23,12 +22,13 @@ class ChunkServer:
         self.port = self.config.PEER_PORT
         self.sock.bind((self.host, self.port))
 
-        self.logger.info(f"ChunkServer initialized on {self.host}:{self.port}")
+        if self.logger is not None:
+            self.logger.info(f"ChunkServer initialized on {self.host}:{self.port}")
 
     def setup_logging(self):
         """Configure logging for the server."""
         self.logger = logging.getLogger('ChunkServer')
-        self.logger.setLevel(logging.INFO)
+        self.logger.setLevel(logging.DEBUG)
 
         # Create handlers
         file_handler = logging.FileHandler(
@@ -50,6 +50,7 @@ class ChunkServer:
     @staticmethod
     def get_local_ip():
         """Get local IP address."""
+        s = None
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.connect(('8.8.8.8', 80))
@@ -57,7 +58,8 @@ class ChunkServer:
         except Exception:
             ip = '127.0.0.1'
         finally:
-            s.close()
+            if s is not None:
+                s.close()
         return ip
 
     def _receive_request(self, conn):
@@ -105,7 +107,7 @@ class ChunkServer:
 
     def handle_client(self, conn, addr):
         """Handle persistent client connection"""
-        # self.logger.info(f"New connection from {addr}")
+        self.logger.info(f"New connection from {addr}")
         try:
             conn.settimeout(30)
             while True:

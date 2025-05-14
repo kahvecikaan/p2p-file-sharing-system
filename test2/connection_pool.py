@@ -29,6 +29,7 @@ class ConnectionPool:
 
     def __init__(self, peer_id=None):
         # Initialize configuration and logging
+        self.logger = None
         self.config = P2PConfig(peer_id)
         self.setup_logging()
 
@@ -41,19 +42,20 @@ class ConnectionPool:
         # Start background cleanup thread
         self.cleanup_thread = threading.Thread(
             target=self._cleanup_stale_connections,
-            daemon=True  # Thread will exit when main program exits
+            daemon=True  # Thread will exit when the main program exits
         )
         self.cleanup_thread.start()
 
-        self.logger.info(
-            f"Connection pool initialized with max_connections={self.max_connections}, "
-            f"timeout={self.connection_timeout}s"
-        )
+        if self.logger is not None:
+            self.logger.info(
+                f"Connection pool initialized with max_connections={self.max_connections}, "
+                f"timeout={self.connection_timeout}s"
+            )
 
     def setup_logging(self):
         """Configure logging for the connection pool component."""
         self.logger = logging.getLogger('ConnectionPool')
-        self.logger.setLevel(logging.INFO)
+        self.logger.setLevel(logging.DEBUG)
 
         # Create handlers for both file and console output
         file_handler = logging.FileHandler(
@@ -74,8 +76,10 @@ class ConnectionPool:
     def _create_connection(self, peer_ip):
         try:
             self.logger.debug(f"Creating new connection to {peer_ip}:{self.config.PEER_PORT}")
+            # Create a TCP socket
             sock = socket.create_connection((peer_ip, self.config.PEER_PORT), timeout=10)
             sock.settimeout(10)
+            # Wrap the socket for thread-safe usage
             return P2PConnection(sock)
         except socket.error as e:
             self.logger.error(f"Failed to connect to {peer_ip}: {e}")

@@ -68,8 +68,8 @@ class ChunkAnnouncer:
                     data = f.read(65536)  # Read in 64KB chunks
                     if not data:
                         break
-                    sha.update(data) # Update hash with each chunk
-            return sha.hexdigest() # Returns the final hash in hexadecimal format
+                    sha.update(data)  # Update hash with each chunk
+            return sha.hexdigest()  # Returns the final hash in hexadecimal format
         except Exception as e:
             self.logger.error(f"Error calculating checksum for {file_path}: {e}")
             return None
@@ -110,32 +110,93 @@ class ChunkAnnouncer:
         while True:
             try:
                 # Get available chunks
-                chunks = self.get_available_chunks()
+                all_chunks = self.get_available_chunks()
 
-                # Prepare an announcement message
-                message = {
-                    "peer_ip": self.get_local_ip(),
-                    "chunks": chunks,
-                    "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                }
-                data = json.dumps(message).encode()
-
-                # Send it to all target ports
-                for port in self.target_ports:
-                    try:
-                        # Use actual broadcast address
-                        self.sock.sendto(data, ('255.255.255.255', port))
-                    except Exception as e:
-                        self.logger.error(f"Failed to broadcast to port {port}: {e}")
-
-                if chunks:
-                    self.logger.info(f"Announced {len(chunks)} chunks")
+                # Check if there are chunks to announce
+                if all_chunks:
+                    # Break chunks into batches and announce them
+                    self._announce_chunks_in_batches(all_chunks)
+                else:
+                    self.logger.info("No chunks available to announce")
 
             except Exception as e:
                 self.logger.error(f"Error in announcement cycle: {e}")
 
             # Wait before the next announcement
             time.sleep(self.config.config.get('ANNOUNCE_INTERVAL', 10))
+
+    def _announce_chunks_in_batches(self, all_chunks, max_batch_size=8):
+        """Split chunks into manageable batches to avoid UDP size limits."""
+        # Split chunks into manageable batches
+        chunk_items = list(all_chunks.items())
+
+        # Calculate the number of batches
+        num_batches = (len(chunk_items) + max_batch_size - 1) // max_batch_size
+
+        # Process each batch
+        for batch_num in range(num_batches):
+            start_idx = batch_num * max_batch_size
+            end_idx = min(start_idx + max_batch_size, len(chunk_items))
+            batch_chunks = dict(chunk_items[start_idx:end_idx])
+
+            # Prepare the announcement for this batch
+            message = {
+                "peer_ip": self.get_local_ip(),
+                "chunks": batch_chunks,
+                "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "batch_info": {
+                    "current": batch_num + 1,
+                    "total": num_batches
+                }
+            }
+
+            # Convert to bytes
+            data = json.dumps(message).encode()
+
+            # Check size before sending
+            message_size = len(data)
+            if message_size > 60000:  # Leave some margin below the ~65507 limit
+                self.logger.warning(f"Batch {batch_num + 1} too large ({message_size} bytes), reducing batch size")
+                # Retry with smaller batch size
+                new_batch_size = max(1, max_batch_size // 2)
+                return self._announce_chunks_in_batches(all_chunks, new_batch_size)  # Pass the new batch size
+
+            # Send the batch
+            self._send_announcement_data(data, f"Batch {batch_num + 1}/{num_batches}")
+
+        self.logger.info(f"Announced {len(all_chunks)} chunks in {num_batches} batches")
+        return None
+
+    def _send_announcement_data(self, data, batch_desc=""):
+        """Send announcement data using multiple strategies."""
+        for port in self.target_ports:
+            broadcast_success = False
+
+            # Try subnet-specific broadcast
+            try:
+                subnet_addr = self.get_broadcast_address()
+                self.sock.sendto(data, (subnet_addr, port))
+                self.logger.info(f"Subnet broadcast to {subnet_addr}:{port} successful {batch_desc}")
+                broadcast_success = True
+            except Exception as e:
+                self.logger.warning(f"Subnet broadcast failed: {e} (message size: {len(data)} bytes)")
+
+            # Try global broadcast if subnet failed
+            if not broadcast_success:
+                try:
+                    self.sock.sendto(data, ('255.255.255.255', port))
+                    self.logger.info(f"Global broadcast to 255.255.255.255:{port} successful {batch_desc}")
+                    broadcast_success = True
+                except Exception as e:
+                    self.logger.warning(f"Global broadcast failed: {e}")
+
+            # Last resort - direct localhost communication
+            if not broadcast_success:
+                try:
+                    self.sock.sendto(data, ('127.0.0.1', port))
+                    self.logger.info(f"Using localhost fallback to 127.0.0.1:{port} {batch_desc}")
+                except Exception as e:
+                    self.logger.error(f"All broadcast methods failed for port {port}: {e}")
 
     def get_broadcast_address(self):
         """Calculate the broadcast address for the current subnet"""
@@ -146,6 +207,7 @@ class ChunkAnnouncer:
         # For a typical /24 network (like 192.168.1.x)
         ip_parts = local_ip.split('.')
         return f"{ip_parts[0]}.{ip_parts[1]}.{ip_parts[2]}.255"
+
 
 def main():
     announcer = ChunkAnnouncer()

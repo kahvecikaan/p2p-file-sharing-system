@@ -16,6 +16,7 @@ class PeerManager:
 
     def __init__(self, peer_id=None):
         # Initialize configuration and logging
+        self.logger = None
         self.config = P2PConfig(peer_id)
         self.setup_logging()
 
@@ -27,12 +28,13 @@ class PeerManager:
         # Load existing content dictionary if available
         self._load_content_dict()
 
-        self.logger.info("PeerManager initialized")
+        if self.logger is not None:
+            self.logger.info("PeerManager initialized")
 
     def setup_logging(self):
         """Configure logging for the peer manager component."""
         self.logger = logging.getLogger('PeerManager')
-        self.logger.setLevel(logging.INFO)
+        self.logger.setLevel(logging.DEBUG)
 
         # Create handlers for both file and console output
         file_handler = logging.FileHandler(
@@ -98,10 +100,11 @@ class PeerManager:
                 now = time.time()
 
                 with self.lock:
-                    stale = [
-                        ip for ip, data in self.peers.items()
-                        if now - data["last_seen"] > timeout
-                    ]
+                    stale = []
+                    for ip, data in self.peers.items():
+                        # Use .get() with a default to handle missing 'last_seen' key
+                        if now - data.get("last_seen", 0) > timeout:
+                            stale.append(ip)
 
                     if stale:
                         self.content_modified = True
@@ -110,7 +113,7 @@ class PeerManager:
                             del self.peers[ip]
 
             except Exception as e:
-                self.logger.error(f"Error removing stale peers: {e}")
+                self.logger.error(f"Error removing stale peers: {e}", exc_info=True)
 
     def get_content_dict(self):
         """Generate content dictionary from current peer information."""

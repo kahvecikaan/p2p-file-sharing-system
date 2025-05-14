@@ -15,6 +15,7 @@ class P2PListener:
 
     def __init__(self, peer_id=None):
         # Initialize configuration and logging
+        self.logger = None
         self.config = P2PConfig(peer_id)
         self.setup_logging()
 
@@ -27,12 +28,13 @@ class P2PListener:
             daemon=True
         ).start()
 
-        self.logger.info("P2PListener initialized")
+        if self.logger is not None:
+            self.logger.info("P2PListener initialized")
 
     def setup_logging(self):
         """Configure logging for the listener component."""
         self.logger = logging.getLogger('P2PListener')
-        self.logger.setLevel(logging.INFO)
+        self.logger.setLevel(logging.DEBUG)
 
         # Create handlers
         file_handler = logging.FileHandler(
